@@ -32,6 +32,91 @@ val_ds = tf.keras.preprocessing.image_dataset_from_directory(
 class_names = train_ds.class_names
 print("Classes:", class_names)
 
+def get_images_from_dataset(dataset, num_batches=1):
+    images = []
+    labels = []
+    for i, (img_batch, label_batch) in enumerate(dataset):
+        images.append(img_batch.numpy())
+        labels.append(label_batch.numpy())
+        if i+1 >= num_batches:
+            break
+    images = np.concatenate(images, axis=0)
+    labels = np.concatenate(labels, axis=0)
+    return images, labels
+
+# Ambil 1 batch saja untuk contoh
+images, labels = get_images_from_dataset(train_ds, num_batches=1)
+print("Shape images:", images.shape)
+
+# =====================
+# Normalisasi Min-Max
+# =====================
+min_val = images.min()
+max_val = images.max()
+images_minmax = (images - min_val) / (max_val - min_val)
+print("Min-Max -> min:", images_minmax.min(), "max:", images_minmax.max())
+
+# =====================
+# Normalisasi Z-Score
+# =====================
+mean_val = images.mean()
+std_val = images.std()
+images_zscore = (images - mean_val) / std_val
+print("Z-Score -> mean:", images_zscore.mean(), "std:", images_zscore.std())
+
+# =====================
+# Visualisasi beberapa gambar
+# =====================
+fig, axes = plt.subplots(3, 5, figsize=(15, 9))
+for i in range(5):
+    # Gambar asli
+    axes[0, i].imshow(images[i].astype(np.uint8))
+    axes[0, i].set_title("Original")
+    axes[0, i].axis("off")
+
+    # Gambar Min-Max
+    axes[1, i].imshow(images_minmax[i])
+    axes[1, i].set_title("Min-Max")
+    axes[1, i].axis("off")
+
+    # Gambar Z-Score (dikembalikan ke range 0-1 untuk visualisasi)
+    z_img = (images_zscore[i] - images_zscore[i].min()) / (images_zscore[i].max() - images_zscore[i].min())
+    axes[2, i].imshow(z_img)
+    axes[2, i].set_title("Z-Score")
+    axes[2, i].axis("off")
+
+plt.tight_layout()
+plt.show()
+
+# =====================
+# Visualisasi histogram distribusi pixel
+# =====================
+plt.figure(figsize=(18,5))
+
+# Histogram Original
+plt.subplot(1,3,1)
+plt.hist(images.flatten(), bins=50, color='blue', alpha=0.7)
+plt.title("Original Pixel Distribution")
+plt.xlabel("Pixel Value")
+plt.ylabel("Frequency")
+
+# Histogram Min-Max
+plt.subplot(1,3,2)
+plt.hist(images_minmax.flatten(), bins=50, color='green', alpha=0.7)
+plt.title("Min-Max Normalized Distribution")
+plt.xlabel("Pixel Value")
+plt.ylabel("Frequency")
+
+# Histogram Z-Score
+plt.subplot(1,3,3)
+plt.hist(images_zscore.flatten(), bins=50, color='red', alpha=0.7)
+plt.title("Z-Score Normalized Distribution")
+plt.xlabel("Pixel Value")
+plt.ylabel("Frequency")
+
+plt.tight_layout()
+plt.show()
+
 
 # =====================
 # Augmentasi Pipeline
