@@ -113,25 +113,28 @@ plt.show()
 # -----------------------
 # Augmentasi Real-time yang Lebih Baik - FIXED VERSION
 # -----------------------
+# Buat layer sekali saja
+random_rotation = tf.keras.layers.RandomRotation(0.1)
+random_zoom = tf.keras.layers.RandomZoom(0.1)
+
 def enhanced_augmentations(image, label):
-    # Random flip
+    # Flip horizontal
     image = tf.image.random_flip_left_right(image)
     
-    # Color augmentations - lebih konservatif
+    # Color augmentations
     image = tf.image.random_brightness(image, 0.15)
     image = tf.image.random_contrast(image, 0.9, 1.1)
     image = tf.image.random_saturation(image, 0.9, 1.1)
     
-    # Random rotation kecil
-    image = tf.keras.layers.RandomRotation(0.1)(image)
+    # Keras layers (instance sudah dibuat di luar)
+    image = random_rotation(image)
+    image = random_zoom(image)
     
-    # Random zoom
-    image = tf.keras.layers.RandomZoom(0.1)(image)
-    
-    # Ensure valid pixel values
+    # Clip ke [0,1]
     image = tf.clip_by_value(image, 0.0, 1.0)
     
     return image, label
+
 
 # -----------------------
 # Load dan Persiapkan Data - OPTIMIZED
